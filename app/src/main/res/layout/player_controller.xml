@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000">
+
+    <ImageView
+        android:id="@+id/exo_lock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="6dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/ic_baseline_lock_open"/>
+
+    <LinearLayout
+        android:id="@+id/middle_controller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_rew"
+            android:src="@drawable/ic_baseline_replay"
+            android:theme="@style/ClickableView"
+            android:layout_marginStart="25dp"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_play"
+            android:src="@drawable/ic_baseline_play_arrow"
+            android:theme="@style/ClickableView"
+            android:layout_marginStart="25dp"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_pause"
+            android:src="@drawable/ic_baseline_pause"
+            android:theme="@style/ClickableView" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_ffwd"
+            android:src="@drawable/ic_baseline_forward"
+            android:theme="@style/ClickableView"
+            android:layout_marginStart="25dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_controller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_position"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/forward_slash"
+            android:textColor="@color/white"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/exo_duration"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/button_fullscreen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_fullscreen"
+        android:theme="@style/ClickableView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/exo_progress"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_margin="8dp"
+        />
+
+
+    <com.google.android.exoplayer2.ui.DefaultTimeBar
+        android:id="@+id/exo_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/bottom_controller"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
