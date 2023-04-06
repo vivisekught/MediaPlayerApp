@@ -3,7 +3,6 @@ package com.example.mediaplayerapp
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.lifecycle.MutableLiveData
@@ -15,14 +14,17 @@ class MainViewModel : ViewModel() {
     val uri: MutableLiveData<String?>
         get() = _uri
 
+    private var _downloadState = MutableLiveData<Int?>()
+    val downloadState: MutableLiveData<Int?>
+        get() = _downloadState
+
 
     fun parseURL(url: String?) = !url.isNullOrBlank()
 
 
     fun getPath(context: Context, uri: Uri) {
-        val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
         // DocumentProvider
-        _uri.value = if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        _uri.value = if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
             if (isMediaDocument(uri)) {
                 val docId = DocumentsContract.getDocumentId(uri)

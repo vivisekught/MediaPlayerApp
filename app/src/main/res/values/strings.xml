@@ -5,11 +5,22 @@
     <string name="media_url_mp4">https://storage.googleapis.com/exoplayer-test-media-0/BigBuckBunny_320x180.mp4</string>
     <string name="myTestMp4">"https://download.blender.org/demo/movies/BBB/bbb_sunflower_1080p_30fps_normal.mp4"</string>
     <string name="watch_video_by_url">Watch video by URL</string>
+    <string name="watch_downloaded_video">Watch downloaded video</string>
     <string name="download_video_by_url">Download video by URL</string>
+    <string name="download_audio_by_url">Download audio by URL</string>
     <string name="watch">Watch</string>
     <string name="enter_url">Enter URL</string>
     <string name="choose_video_from_storage">Choose video from storage</string>
+    <string name="choose_audio_from_storage">Choose audio from storage</string>
     <string name="video">VIDEO</string>
     <string name="download">Download</string>
     <string name="ok">OK</string>
+    <string name="app_describe">Downloading Media</string>
+    <string name="download_failure">Failed to download video</string>
+    <string name="test_url_95mb">https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-Video-File-For-Testing.mp4</string>
+    <string name="test_url_audio">https://file-examples.com/storage/fe9278ad7f642dbd39ac5c9/2017/11/file_example_MP3_1MG.mp3</string>
+    <string name="permission_granted">Permission granted</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="audio">audio</string>
+    <string name="audio_by_url">Listen to audio by url</string>
 </resources>

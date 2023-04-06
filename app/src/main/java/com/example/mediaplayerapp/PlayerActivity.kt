@@ -1,20 +1,12 @@
 package com.example.mediaplayerapp
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.example.mediaplayerapp.databinding.ActivityPlayerBinding
 import com.google.android.exoplayer2.*
@@ -32,13 +24,9 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(binding.root)
         parseIntent()
         initializePlayer()
-        Log.d(TAG, "onCreate: $link")
         binding.playerView.player = exoPlayer
-        if (checkPermission()) {
-            loadMediaToPlayer()
-        } else {
-            requestPermissions()
-        }
+        loadMediaToPlayer()
+
     }
 
     override fun onPause() {
@@ -69,7 +57,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
 
-
     private fun initializePlayer() {
         val renderersFactory = buildRenderersFactory(applicationContext, true)
         val trackSelector = DefaultTrackSelector(applicationContext)
@@ -85,77 +72,6 @@ class PlayerActivity : AppCompatActivity() {
             }
     }
 
-    private fun requestPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Log.d(TAG, "request started")
-                val intent = Intent()
-                intent.action = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-                val uri = Uri.fromParts("package", this.packageName, null)
-                intent.data = uri
-                storageActivityResultLauncher.launch(intent)
-            } catch (e: Exception) {
-                Log.d(TAG, "request failed")
-                val intent = Intent()
-                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
-                storageActivityResultLauncher.launch(intent)
-            }
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
-                STORAGE_PERMISSIONS_CODE
-            )
-        }
-    }
-
-    private val storageActivityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            Log.d(TAG, "registerForActivityResult")
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (Environment.isExternalStorageManager()) {
-                    loadMediaToPlayer()
-                } else {
-                    Log.d(TAG, "Access Denied: ")
-                }
-            }
-        }
-
-    private fun checkPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            val write =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            val read =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-            write == PackageManager.PERMISSION_GRANTED && read == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == STORAGE_PERMISSIONS_CODE) {
-            if (grantResults.isNotEmpty()) {
-                val write = grantResults[0] == PackageManager.PERMISSION_GRANTED
-                val read = grantResults[1] == PackageManager.PERMISSION_GRANTED
-                if (write and read) {
-                    loadMediaToPlayer()
-                } else {
-                    Log.d(TAG, "onRequestPermissionsResult: Denied permissions")
-                }
-            }
-        }
-    }
-
     private fun buildRenderersFactory(
         context: Context, preferExtensionRenderer: Boolean
     ): RenderersFactory {
@@ -169,28 +85,21 @@ class PlayerActivity : AppCompatActivity() {
     }
 
 
-    private val exoPlayerListener = object : Player.Listener {  // 1
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {   // 2
-            if (playWhenReady) Log.d("Nikita", "Start")
-        }
-
+    private val exoPlayerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
-                Player.STATE_BUFFERING -> {   // 3
+                Player.STATE_BUFFERING -> {
                     Log.d(TAG, "Loading")
                     binding.playerProgressBar.isVisible = true
                 }
-                Player.STATE_READY -> {   // 4
+                Player.STATE_READY -> {
                     binding.playerProgressBar.isVisible = false
 
                     Log.d(TAG, "READY")
                 }
-                Player.STATE_ENDED -> { // 5
+                Player.STATE_ENDED -> {
                     exoPlayer.seekTo(0)
                     exoPlayer.playWhenReady = false
-                }
-                Player.STATE_IDLE -> {
-
                 }
             }
         }
@@ -212,10 +121,7 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "PLAYER_TAG"
-        private const val STORAGE_PERMISSIONS_CODE = 100
         private const val EMPTY_LINK = ""
-
-
         private const val LINK = "Link"
 
         fun newIntent(context: Context, link: String): Intent {
