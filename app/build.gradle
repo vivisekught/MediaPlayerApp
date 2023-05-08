@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -49,4 +50,16 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.18.5'
     implementation 'com.google.android.exoplayer:extension-cronet:2.18.5'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.5'
+
+    //room
+    kapt "androidx.room:room-compiler:2.5.1"
+    implementation "androidx.room:room-runtime:2.5.1"
+    implementation "androidx.room:room-ktx:2.5.1"
+
+    //coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1"
+
 }

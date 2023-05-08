@@ -1,4 +1,4 @@
-package com.example.mediaplayerapp
+package com.example.mediaplayerapp.presentation
 
 import android.Manifest
 import android.app.DownloadManager
@@ -10,14 +10,24 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import com.example.mediaplayerapp.R
 import com.example.mediaplayerapp.databinding.ActivityMainBinding
+import com.example.mediaplayerapp.presentation.download_history.DownloadHistoryActivity
+import com.example.mediaplayerapp.utils.Constants
+import com.example.mediaplayerapp.utils.Constants.AUDIO_MIME_TYPE
+import com.example.mediaplayerapp.utils.Constants.VIDEO_MIME_TYPE
+import com.example.mediaplayerapp.utils.DownloadMediaState
 import com.google.android.exoplayer2.Player
 
 
@@ -31,22 +41,34 @@ class MainActivity : AppCompatActivity(), Player.Listener {
         getSystemService(DownloadManager::class.java)
     }
 
-    private val videoReceiver = object : BroadcastReceiver() {
+    private val downloadReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == Downloader.ACTION_DOWNLOAD_COMPLETE) {
+            if (intent?.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
                 try {
                     val id = intent.getLongExtra(
                         DownloadManager.EXTRA_DOWNLOAD_ID,
-                        Downloader.DOWNLOAD_DEFAULT_VALUE
+                        Constants.DOWNLOAD_DEFAULT_VALUE
                     )
                     val query = DownloadManager.Query().setFilterById(id)
                     downloadManager.query(query).use { cursor ->
                         if (cursor.moveToFirst()) {
-                            viewModel.downloadState.value =
+                            val state =
                                 cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                        } else {
-                            viewModel.downloadState.value = null
+                            if (state == DownloadManager.STATUS_SUCCESSFUL) {
+                                viewModel.updateMediaUri(
+                                    id,
+                                    downloadManager.getUriForDownloadedFile(id).toString(),
+                                    DownloadMediaState.Success
+                                )
+                            }
+                            if (state == DownloadManager.STATUS_FAILED) {
+                                viewModel.updateMediaUri(
+                                    id,
+                                    null,
+                                    DownloadMediaState.Failed
+                                )
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -55,7 +77,6 @@ class MainActivity : AppCompatActivity(), Player.Listener {
             }
         }
     }
-
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -74,21 +95,51 @@ class MainActivity : AppCompatActivity(), Player.Listener {
         registerReceivers()
         setObservers()
         setOnClickListeners()
+        setupActionBar()
+
         permissionsLauncher =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
                 readPermissionGranted =
-                    permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
+                    permissions[Manifest.permission.READ_EXTERNAL_STORAGE]
+                        ?: readPermissionGranted
                 writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
                     ?: writePermissionGranted
 
                 if (readPermissionGranted) {
                     Toast.makeText(this, "Permission Granted", Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(this, "Can't read files without permission.", Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        this,
+                        "Can't read files without permission.",
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             }
         updateOrRequestPermissions()
+    }
+
+    private fun setupActionBar() {
+        addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // Add menu items here
+                menuInflater.inflate(R.menu.main_activity_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                return when (menuItem.itemId) {
+                    R.id.action_bar_downloads -> {
+                        startActivity(DownloadHistoryActivity.newIntent(this@MainActivity))
+                        true
+                    }
+                    R.id.action_bar_history -> {
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, this, Lifecycle.State.RESUMED)
     }
 
     private fun updateOrRequestPermissions() {
@@ -118,36 +169,27 @@ class MainActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun startDownloadVideo(uri: String) {
-        val downloader = Downloader(this)
-        downloader.downloadVideo(uri)
+        viewModel.downloadVideo(uri)
+    }
+
+    private fun startDownloadAudio(uri: String) {
+        viewModel.downloadAudio(uri)
     }
 
     private fun registerReceivers() {
-        val intentFilter = IntentFilter(Downloader.ACTION_DOWNLOAD_COMPLETE)
-        registerReceiver(videoReceiver, intentFilter)
+        val intentFilter = IntentFilter().apply {
+            addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        }
+        registerReceiver(downloadReceiver, intentFilter)
     }
 
     private fun setObservers() {
-        with(viewModel) {
-            uri.observe(this@MainActivity) { uri ->
-                if (uri != null) {
-                    startActivity(PlayerActivity.newIntent(this@MainActivity, uri))
-                }
+        with(viewModel){
+            audioUrl.observe(this@MainActivity){
+                startActivity(PlayerActivity.newAudioIntent(this@MainActivity, it))
             }
-            downloadState.observe(this@MainActivity) { state ->
-                when (state) {
-                    DownloadManager.STATUS_FAILED -> {
-                        binding.downloadVideoByUrlPb.isVisible = false
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.download_failure),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    DownloadManager.STATUS_SUCCESSFUL -> {
-                        binding.downloadVideoByUrlPb.isVisible = false
-                    }
-                }
+            videoUrl.observe(this@MainActivity){
+                startActivity(PlayerActivity.newVideoIntent(this@MainActivity, it))
             }
         }
     }
@@ -158,7 +200,7 @@ class MainActivity : AppCompatActivity(), Player.Listener {
                 if (readPermissionGranted) {
                     val url = watchVideoByUrlEt.text.toString()
                     if (viewModel.parseURL(url)) {
-                        startActivity(PlayerActivity.newIntent(this@MainActivity, url))
+                        startActivity(PlayerActivity.newVideoIntent(this@MainActivity, url))
                     } else {
                         Toast.makeText(this@MainActivity, "Incorrect URL", Toast.LENGTH_SHORT)
                             .show()
@@ -174,9 +216,8 @@ class MainActivity : AppCompatActivity(), Player.Listener {
 
             }
             downloadVideoByUrlButton.setOnClickListener {
-                if (writePermissionGranted){
+                if (writePermissionGranted) {
                     val url = binding.downloadVideoByUrlEt.text.toString()
-                    binding.downloadVideoByUrlPb.isVisible = true
                     startDownloadVideo(url)
                 } else {
                     Toast.makeText(
@@ -189,7 +230,51 @@ class MainActivity : AppCompatActivity(), Player.Listener {
             }
             chooseVideoStorage.setOnClickListener {
                 if (readPermissionGranted) {
-                    getContent.launch("video/*")
+                    getContent.launch(VIDEO_MIME_TYPE)
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Can't read files without permission.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    updateOrRequestPermissions()
+                }
+            }
+            audioByUrlButton.setOnClickListener {
+                if (readPermissionGranted) {
+                    val url = audioByUrlEt.text.toString()
+                    if (viewModel.parseURL(url)) {
+                        startActivity(PlayerActivity.newAudioIntent(this@MainActivity, url))
+                    } else {
+                        Toast.makeText(this@MainActivity, "Incorrect URL", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Can't read files without permission.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    updateOrRequestPermissions()
+                }
+
+            }
+            downloadAudioByUrlButton.setOnClickListener {
+                if (writePermissionGranted) {
+                    val url = binding.downloadAudioByUrlEt.text.toString()
+                    startDownloadAudio(url)
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Can't read files without permission.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    updateOrRequestPermissions()
+                }
+            }
+            chooseAudioStorage.setOnClickListener {
+                if (readPermissionGranted) {
+                    getContent.launch(AUDIO_MIME_TYPE)
                 } else {
                     Toast.makeText(
                         this@MainActivity,
@@ -205,7 +290,7 @@ class MainActivity : AppCompatActivity(), Player.Listener {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(videoReceiver)
+        unregisterReceiver(downloadReceiver)
     }
 
     private companion object {

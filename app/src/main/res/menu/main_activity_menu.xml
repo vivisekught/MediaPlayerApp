@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_bar_downloads"
+        android:icon="@drawable/ic_baseline_download_24"
+        android:title="@string/downloads"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_bar_history"
+        android:icon="@drawable/ic_baseline_history"
+        android:title="@string/downloads"
+        app:showAsAction="ifRoom"/>
+</menu>

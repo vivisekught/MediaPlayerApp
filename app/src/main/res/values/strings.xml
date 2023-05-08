@@ -18,9 +18,12 @@
     <string name="app_describe">Downloading Media</string>
     <string name="download_failure">Failed to download video</string>
     <string name="test_url_95mb">https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-Video-File-For-Testing.mp4</string>
-    <string name="test_url_audio">https://file-examples.com/storage/fe9278ad7f642dbd39ac5c9/2017/11/file_example_MP3_1MG.mp3</string>
+    <string name="test_url_audio">https://download.samplelib.com/mp3/sample-9s.mp3</string>
     <string name="permission_granted">Permission granted</string>
     <string name="permission_denied">Permission denied</string>
     <string name="audio">audio</string>
     <string name="audio_by_url">Listen to audio by url</string>
+    <string name="downloads">downloads</string>
+    <string name="download_media_history">Download media history</string>
+    <string name="empty_history">Empty history</string>
 </resources>
