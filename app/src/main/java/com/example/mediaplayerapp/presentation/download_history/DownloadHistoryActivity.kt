@@ -3,6 +3,7 @@ package com.example.mediaplayerapp.presentation.download_history
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -21,6 +22,7 @@ class DownloadHistoryActivity : AppCompatActivity() {
         binding = ActivityMediaDownloadHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
         viewModel = ViewModelProvider(this)[DownloadHistoryViewModel::class.java]
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setupRecyclerView()
         setupObservers()
     }
@@ -54,6 +56,16 @@ class DownloadHistoryActivity : AppCompatActivity() {
                     )
                 )
             }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId){
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

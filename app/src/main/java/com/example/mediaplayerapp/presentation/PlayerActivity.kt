@@ -1,8 +1,9 @@
 package com.example.mediaplayerapp.presentation
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -17,6 +18,10 @@ import com.google.android.exoplayer2.ext.cronet.CronetUtil
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.DefaultMediaDescriptionAdapter
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.google.android.exoplayer2.ui.PlayerNotificationManager.BitmapCallback
+import com.google.android.exoplayer2.ui.PlayerNotificationManager.MediaDescriptionAdapter
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
@@ -43,21 +48,21 @@ class PlayerActivity : AppCompatActivity() {
         loadMediaToPlayer()
     }
 
-    override fun onPause() {
-        super.onPause()
-        if (Build.VERSION.SDK_INT <= 23) {
-            exoPlayer.pause()
-        }
-    }
 
-    override fun onStop() {
-        super.onStop()
-        if (Build.VERSION.SDK_INT > 23) {
-            exoPlayer.pause()
-            finish()
-
-        }
-    }
+//    override fun onPause() {
+//        super.onPause()
+//        if (Build.VERSION.SDK_INT <= 23) {
+//
+//        }
+//    }
+//
+//    override fun onStop() {
+//        super.onStop()
+//        if (Build.VERSION.SDK_INT > 23) {
+//            finish()
+//
+//        }
+//    }
 
     override fun onDestroy() {
         super.onDestroy()

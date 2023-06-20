@@ -26,17 +26,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val mediaRepositoryImpl = MediaRepositoryImpl(application)
 
-    private var _videoUrl = MutableLiveData<String>()
-    val videoUrl: LiveData<String>
-        get() = _videoUrl
-
-    private var _audioUrl = MutableLiveData<String>()
-    val audioUrl: LiveData<String>
-        get() = _audioUrl
-
     fun parseURL(url: String?) = !url.isNullOrBlank()
 
-    fun getPath(context: Context, uri: Uri) {
+    fun getPath(context: Context, uri: Uri): String? {
         // DocumentProvider
         if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
@@ -49,25 +41,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val selectionArgs = arrayOf(split[1])
                 if ("video" == type) {
                     contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    _videoUrl.value = getDataColumn(
+                    return getDataColumn(
                         context, contentUri, selection,
                         selectionArgs
                     )
                 } else if ("audio" == type) {
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                    _audioUrl.value = getDataColumn(
+                    return getDataColumn(
                         context, contentUri, selection,
                         selectionArgs
                     )
                 }
 
-            } else null
+            } else return null
         } else if ("content".equals(uri.scheme, ignoreCase = true)) {
-            getDataColumn(context, uri, null, null)
+            return getDataColumn(context, uri, null, null)
         } else if ("file".equals(uri.scheme, ignoreCase = true)) {
-            uri.path
-        } else null
-
+            return uri.path
+        }
+        return null
     }
 
     private fun isMediaDocument(uri: Uri): Boolean {

@@ -78,11 +78,21 @@ class MainActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private val getContent =
+    private val getVideoContent =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            Log.d(TAG, uri.toString())
             if (uri != null) {
-                viewModel.getPath(this@MainActivity, uri)
+                val storageUri = viewModel.getPath(this@MainActivity, uri) ?: ""
+                val intent = PlayerActivity.newVideoIntent(this, storageUri)
+                startActivity(intent)
+            }
+        }
+
+    private val getAudioContent =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                val storageUri = viewModel.getPath(this@MainActivity, uri) ?: ""
+                val intent = PlayerActivity.newAudioIntent(this, storageUri)
+                startActivity(intent)
             }
         }
 
@@ -99,21 +109,32 @@ class MainActivity : AppCompatActivity(), Player.Listener {
 
         permissionsLauncher =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                readPermissionGranted =
+                readPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    (permissions[Manifest.permission.READ_MEDIA_VIDEO] == permissions[Manifest.permission.READ_MEDIA_AUDIO])
+                } else {
                     permissions[Manifest.permission.READ_EXTERNAL_STORAGE]
                         ?: readPermissionGranted
+                }
                 writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
                     ?: writePermissionGranted
 
                 if (readPermissionGranted) {
-                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Read permission Granted", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(
                         this,
                         "Can't read files without permission.",
                         Toast.LENGTH_LONG
-                    )
-                        .show()
+                    ).show()
+                }
+                if (writePermissionGranted) {
+                    Toast.makeText(this, "Write permission Granted", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Can't write files without permission.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         updateOrRequestPermissions()
@@ -133,9 +154,11 @@ class MainActivity : AppCompatActivity(), Player.Listener {
                         startActivity(DownloadHistoryActivity.newIntent(this@MainActivity))
                         true
                     }
+
                     R.id.action_bar_history -> {
                         true
                     }
+
                     else -> false
                 }
             }
@@ -143,10 +166,22 @@ class MainActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateOrRequestPermissions() {
-        val hasReadPermission = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasReadPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_VIDEO
+            ) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+
         val hasWritePermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -184,14 +219,14 @@ class MainActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun setObservers() {
-        with(viewModel){
-            audioUrl.observe(this@MainActivity){
-                startActivity(PlayerActivity.newAudioIntent(this@MainActivity, it))
-            }
-            videoUrl.observe(this@MainActivity){
-                startActivity(PlayerActivity.newVideoIntent(this@MainActivity, it))
-            }
-        }
+//        with(viewModel) {
+//            audioUrl.observe(this@MainActivity) {
+//                startActivity(PlayerActivity.newAudioIntent(this@MainActivity, it))
+//            }
+//            videoUrl.observe(this@MainActivity) {
+//                startActivity(PlayerActivity.newVideoIntent(this@MainActivity, it))
+//            }
+//        }
     }
 
     private fun setOnClickListeners() {
@@ -218,6 +253,11 @@ class MainActivity : AppCompatActivity(), Player.Listener {
             downloadVideoByUrlButton.setOnClickListener {
                 if (writePermissionGranted) {
                     val url = binding.downloadVideoByUrlEt.text.toString()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Download started",
+                        Toast.LENGTH_LONG
+                    ).show()
                     startDownloadVideo(url)
                 } else {
                     Toast.makeText(
@@ -230,7 +270,7 @@ class MainActivity : AppCompatActivity(), Player.Listener {
             }
             chooseVideoStorage.setOnClickListener {
                 if (readPermissionGranted) {
-                    getContent.launch(VIDEO_MIME_TYPE)
+                    getVideoContent.launch(VIDEO_MIME_TYPE)
                 } else {
                     Toast.makeText(
                         this@MainActivity,
@@ -263,6 +303,11 @@ class MainActivity : AppCompatActivity(), Player.Listener {
                 if (writePermissionGranted) {
                     val url = binding.downloadAudioByUrlEt.text.toString()
                     startDownloadAudio(url)
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Download started",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } else {
                     Toast.makeText(
                         this@MainActivity,
@@ -274,7 +319,7 @@ class MainActivity : AppCompatActivity(), Player.Listener {
             }
             chooseAudioStorage.setOnClickListener {
                 if (readPermissionGranted) {
-                    getContent.launch(AUDIO_MIME_TYPE)
+                    getAudioContent.launch(AUDIO_MIME_TYPE)
                 } else {
                     Toast.makeText(
                         this@MainActivity,
